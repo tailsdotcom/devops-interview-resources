@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-scheduler-{{ .Values.app_name }}
+  labels:
+    app: deployment-scheduler-{{ .Values.app_name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-scheduler-{{ .Values.app_name }}
+  template:
+    metadata:
+      annotations:
+        ad.datadoghq.com/{{ .Values.app_name }}.logs: |
+          [{"service": {{ .Values.namespace | quote }}, "source": "scheduler-{{ .Values.stage }}"}]
+      labels:
+        app: deployment-scheduler-{{ .Values.app_name }}
+    spec:
+      nodeSelector:
+        pool: web
+      serviceAccountName: airflow
+      automountServiceAccountToken: True
+      containers:
+      - name: {{ .Values.app_name }}
+        image: 123456.dkr.ecr.eu-west-1.amazonaws.com/tails/data/{{ .Values.app_name }}:{{ .Values.commitid }}
+        imagePullPolicy: Always
+        command: ["bash", "scripts/run_scheduler.sh"]
+        env:
+        - name: "AIRFLOW__CORE__EXECUTOR"
+          value: "KubernetesExecutor"
+        envFrom:
+          - secretRef:
+              name: {{ .Values.app_name }}
+        resources:
+          requests:
+            cpu: 512Mi
+            memory: 512Mi
+          limits:
+            cpu: 1024Mi
+            memory: 1024Mi

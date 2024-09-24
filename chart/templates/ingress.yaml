@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.app_name }}
+  annotations:
+    kubernetes.io/ingress.class: "alb"
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.hostname }}
+    alb.ingress.kubernetes.io/healthcheck-path: "/health"
+    alb.ingress.kubernetes.io/scheme: "internal"
+    alb.ingress.kubernetes.io/group.name: "data-eng"
+    alb.ingress.kubernetes.io/target-type: "ip"
+    alb.ingress.kubernetes.io/listen-ports: |
+      [
+        {"HTTP": 80},
+        {"HTTPS": 443}
+      ]
+    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.certificate_arn }}
+    alb.ingress.kubernetes.io/ssl-policy: "ELBSecurityPolicy-TLS-1-1-2017-01"
+spec:
+  rules:
+  - host: {{ .Values.hostname }}
+    http:
+      paths:
+      - backend:
+          serviceName: deployment-web-{{ .Values.app_name }}
+          servicePort: 80
+        path: /*

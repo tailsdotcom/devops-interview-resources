@@ -1,0 +1,9 @@
+# Default values are here, additional values are passed by Terraform
+
+app_name: "stub"
+cluster_name: ~
+hostname: ""
+database_url: "stub"
+stage: "staging"
+commitid: "123"
+replicas: 1
